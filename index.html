@@ -4955,12 +4955,12 @@
       };
 
       return (
-        <div className="flex flex-col h-[100dvh] w-full transition-colors duration-500">
+        <div className="flex flex-col h-[100dvh] w-full transition-colors duration-500 bg-paper portal-bg">
           <GlobalStyle />
           {view !== 'game' && (
             <header className="flex-shrink-0 bg-[var(--panel)] border-b-2 border-[var(--border)] py-3 px-5 flex justify-between items-center z-50 shadow-sm">
               <div className="flex items-center gap-3">
-                <a href="#/" onClick={(e)=>{e.preventDefault();onBack()}} className="bg-[var(--bg)] border-2 border-[var(--border)] rounded-lg px-2 py-1 text-xs font-bold text-[var(--text)] flex items-center gap-1 hover:bg-[var(--secondary)] hover:text-white transition-colors" onClick={() => audioCtrl.playSE('click')}>
+                <a href="#/" className="bg-[var(--bg)] border-2 border-[var(--border)] rounded-lg px-2 py-1 text-xs font-bold text-[var(--text)] flex items-center gap-1 hover:bg-[var(--secondary)] hover:text-white transition-colors" onClick={(e) => { e.preventDefault(); audioCtrl.playSE('click'); onBack(); }}>
                   <i className="bi bi-arrow-left"></i> <span className="hidden sm:inline">ドリルに</span>もどる
                 </a>
                 <div className="flex items-center cursor-pointer gap-2" onClick={() => { audioCtrl.playSE('click'); peerState.role ? leave() : setView('home'); }}>
