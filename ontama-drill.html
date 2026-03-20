@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>おんたまドリル</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- React & ReactDOM -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  
+  <!-- Babel -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="icon" href="favicon.png">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'M PLUS Rounded 1c', sans-serif;
+      background-color: #F4F1DE; 
+      background-image: 
+        radial-gradient(#e5e0c8 15%, transparent 16%),
+        radial-gradient(#e5e0c8 15%, transparent 16%);
+      background-size: 20px 20px;
+      background-position: 0 0, 10px 10px;
+    }
+    
+    .masking-tape {
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%) rotate(-2deg);
+      width: 80px;
+      height: 25px;
+      background-color: rgba(255, 255, 255, 0.6);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      z-index: 10;
+    }
+    .tape-terracotta { background-color: rgba(224, 122, 95, 0.7); }
+    .tape-sage { background-color: rgba(129, 178, 154, 0.7); }
+    .tape-mustard { background-color: rgba(242, 204, 143, 0.8); }
+
+    .progress-bar-striped {
+      background-image: linear-gradient(45deg, rgba(255,255,255,.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,.15) 50%, rgba(255,255,255,.15) 75%, transparent 75%, transparent);
+      background-size: 1rem 1rem;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    // アプリのデータ定義
+    const appData = [
+      {
+        id: 1,
+        title: 'カンジノート',
+        grade: '1〜6ねんせい',
+        description: '毎日コツコツ！漢字の練習をしよう。',
+        url: 'https://hot-spring-egg.github.io/kanji-note/',
+        icon: 'pencil',
+        color: '#E07A5F', // テラコッタ
+        tapeClass: 'tape'
+      },
+      {
+        id: 2,
+        title: 'サンスウノート',
+        grade: '1〜6ねんせい',
+        description: 'すばやく正確に計算する力をつけよう！',
+        url: 'https://hot-spring-egg.github.io/sansu-note/',
+        icon: 'calculator',
+        color: '#81B29A', // セージグリーン
+        tapeClass: 'tape'
+      },
+      {
+        id: 3,
+        title: 'モジノート',
+        grade: '1ねんせい〜',
+        description: 'ひらがな・カタカナをきれいに書こう！',
+        url: 'https://hot-spring-egg.github.io/moji-note/',
+        icon: 'pencil',
+        color: '#F2CC8F', // マスタード
+        tapeClass: 'tape'
+      },
+      {
+        id: 4,
+        title: 'チズノート',
+        grade: '4ねんせい〜',
+        description: '都道府県をおぼえよう！',
+        url: 'https://hot-spring-egg.github.io/chizu-note/',
+        icon: 'map',
+        color: '#3D405B', // ブルーグレー 
+        tapeClass: 'tape'
+      },
+      {
+        id: 5,
+        title: 'チズキゴウノート',
+        grade: '3ねんせい〜',
+        description: '地図記号をおぼえよう！',
+        url: 'https://hot-spring-egg.github.io/chizu-mark-note/',
+        icon: 'map',
+        color: '#8B7A8B', // ヘザーパープル
+        tapeClass: 'tape'
+      },
+      {
+        id: 6,
+        title: 'ケイサンアタック！',
+        grade: '1〜6ねんせい',
+        description: 'さぁ、けいさんとっくんしよう！',
+        url: 'https://hot-spring-egg.github.io/keisan-attack/',
+        icon: 'calculator',
+        color: '#5E7A96', // ステートブルー
+        tapeClass: 'tape'
+      }
+    ];
+
+    // 20段階のランクデータ
+    const rankData = [
+      { level: 1, min: 0, title: 'みならい タンケンカ', color: '#81B29A' },
+      { level: 2, min: 10, title: 'かけだしの レンジャー', color: '#E07A5F' },
+      { level: 3, min: 30, title: 'がんばる チャレンジャー', color: '#3D405B' },
+      { level: 4, min: 100, title: 'いっぱしの マイスター', color: '#F2CC8F' },
+      { level: 5, min: 300, title: 'ゆめみる トラベラー', color: '#81B29A' },
+      { level: 6, min: 800, title: 'のびざかりの クリエイター', color: '#E07A5F' },
+      { level: 7, min: 2000, title: 'ちえの ぼうけんしゃ', color: '#3D405B' },
+      { level: 8, min: 5000, title: 'ひらめきの ナビゲーター', color: '#F2CC8F' },
+      { level: 9, min: 10000, title: 'はなまる キャプテン', color: '#81B29A' },
+      { level: 10, min: 25000, title: 'かがやく エース', color: '#E07A5F' },
+      { level: 11, min: 50000, title: 'ゆうきの ヒーロー', color: '#3D405B' },
+      { level: 12, min: 100000, title: 'きぼうの パイオニア', color: '#F2CC8F' },
+      { level: 13, min: 250000, title: 'みらいの プロフェッショナル', color: '#81B29A' },
+      { level: 14, min: 500000, title: 'すばらしき エキスパート', color: '#E07A5F' },
+      { level: 15, min: 1000000, title: 'たのもしい リーダー', color: '#3D405B' },
+      { level: 16, min: 2000000, title: 'まぼろしの マスター', color: '#F2CC8F' },
+      { level: 17, min: 4000000, title: 'きせきの レジェンド', color: '#81B29A' },
+      { level: 18, min: 6000000, title: 'むてきの チャンピオン', color: '#E07A5F' },
+      { level: 19, min: 8000000, title: 'ぎんがの だいスター', color: '#3D405B' },
+      { level: 20, min: 10000000, title: 'むげんの ユニバース', color: '#F2CC8F' }
+    ];
+
+    // スコアから現在のランク情報を計算する関数
+    const getRankInfo = (score) => {
+      for (let i = 0; i < rankData.length; i++) {
+        // 最終レベルに到達した場合
+        if (i === rankData.length - 1) {
+          return { ...rankData[i], next: rankData[i].min };
+        }
+        // 次のレベルの基準点に達していない場合、現在のレベルを返す
+        if (score < rankData[i + 1].min) {
+          return { ...rankData[i], next: rankData[i + 1].min };
+        }
+      }
+    };
+
+    const Icon = ({ name, size = 24, color = "currentColor", className = "" }) => {
+      useEffect(() => {
+        lucide.createIcons();
+      }, [name]);
+      return <i data-lucide={name} width={size} height={size} stroke={color} className={className}></i>;
+    };
+
+    const AppCard = ({ app }) => {
+      const handleClick = () => {
+        window.location.href = app.url;
+      };
+
+      return (
+        <div 
+          onClick={handleClick}
+          className="relative bg-white p-6 rounded-lg shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-200 cursor-pointer flex flex-col items-center text-center group"
+          style={{ borderTop: `4px solid ${app.color}` }}
+        >
+          <div className={`masking-tape ${app.tapeClass}`}></div>
+          <div 
+            className="w-20 h-20 rounded-full flex items-center justify-center mb-4 text-white shadow-inner transform group-hover:scale-110 transition-transform"
+            style={{ backgroundColor: app.color }}
+          >
+            <Icon name={app.icon} size={40} />
+          </div>
+          <h2 className="text-xl font-bold text-gray-800 mb-2" style={{ color: '#3D405B' }}>
+            {app.title}
+          </h2>
+          <span className="text-xs font-bold px-2 py-1 rounded bg-gray-100 text-gray-600 mb-3">
+            たいしょう: {app.grade}
+          </span>
+          <p className="text-sm text-gray-600 flex-grow">
+            {app.description}
+          </p>
+          <button 
+            className="mt-4 px-6 py-2 rounded-full text-white font-bold transition-colors w-full"
+            style={{ backgroundColor: app.color }}
+          >
+            ひらく
+          </button>
+        </div>
+      );
+    };
+
+    const App = () => {
+      const [isLoading, setIsLoading] = useState(true);
+      const [totalScore, setTotalScore] = useState(0);
+
+      const loadScore = () => {
+        const score = parseInt(localStorage.getItem('gogo_drill_score') || '0', 10);
+        setTotalScore(score);
+      };
+
+      useEffect(() => {
+        loadScore();
+        window.addEventListener('focus', loadScore);
+        
+        const timer = setTimeout(() => {
+          setIsLoading(false);
+          requestAnimationFrame(() => lucide.createIcons());
+        }, 500);
+        
+        return () => {
+          clearTimeout(timer);
+          window.removeEventListener('focus', loadScore);
+        };
+      }, []);
+
+      if (isLoading) {
+        return (
+          <div className="min-h-screen flex flex-col items-center justify-center">
+            <div className="w-16 h-16 border-4 border-[#F4F1DE] border-t-[#E07A5F] rounded-full animate-spin"></div>
+            <p className="mt-4 text-[#3D405B] font-bold animate-pulse">じゅんびちゅう...</p>
+          </div>
+        );
+      }
+
+      const rankInfo = getRankInfo(totalScore);
+      // 動的にMAXレベル（現在は20）を判定
+      const isMaxRank = rankInfo.level === rankData.length;
+      const progressPercent = isMaxRank ? 100 : ((totalScore - rankInfo.min) / (rankInfo.next - rankInfo.min)) * 100;
+
+      return (
+        <div className="min-h-screen p-4 md:p-8">
+          
+          <header className="max-w-4xl mx-auto mb-10 flex flex-col gap-4">
+            {/* タイトル部分 */}
+            <div className="bg-[#3D405B] rounded-xl p-6 shadow-lg border-8 border-[#2b2d42] relative overflow-hidden">
+              <div className="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjZmZmIi8+CjxyZWN0IHdpZHRoPSIxIiBoZWlnaHQ9IjEiIGZpbGw9IiMwMDAiLz4KPC9zdmc+')]"></div>
+              <div className="relative z-10 flex flex-col items-center text-center">
+                <div className="flex items-center gap-3 mb-2">
+                  <Icon name="egg" size={32} color="#F2CC8F" />
+                  <h1 className="text-3xl md:text-4xl font-bold text-white tracking-widest" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.3)' }}>
+                    おんたまドリル
+                  </h1>
+                  <Icon name="egg" size={32} color="#F2CC8F" />
+                </div>
+                <p className="text-[#F4F1DE] text-sm md:text-base mt-2">
+                  いろいろな がくしゅうアプリが あつまる ばしょです。<br/>
+                  たのしくまなんで スコアをためてランクアップ！
+                </p>
+              </div>
+            </div>
+
+            {/* ステータス（ランク）カード */}
+            <div className="bg-white rounded-xl p-5 shadow-md border-2 border-gray-200 relative">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-inner border-4 border-white" style={{ backgroundColor: rankInfo.color }}>
+                    Lv.{rankInfo.level}
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500 font-bold">げんざいの ランク</p>
+                    <p className="text-xl sm:text-2xl font-bold" style={{ color: rankInfo.color }}>{rankInfo.title}</p>
+                  </div>
+                </div>
+                
+                <div className="text-center sm:text-right">
+                  <p className="text-sm text-gray-500 font-bold mb-1">とけた もんだいの かず</p>
+                  <p className="text-3xl font-bold text-[#3D405B]">
+                    {totalScore.toLocaleString()} <span className="text-lg">てん</span>
+                  </p>
+                </div>
+              </div>
+
+              {/* プログレスバー */}
+              <div className="mt-4">
+                <div className="flex justify-between text-xs font-bold text-gray-500 mb-1">
+                  <span>{rankInfo.min.toLocaleString()} てん</span>
+                  <span>{isMaxRank ? 'MAX!' : `つぎのランクまで あと ${(rankInfo.next - totalScore).toLocaleString()} てん`}</span>
+                  <span>{isMaxRank ? '10,000,000 てん' : `${rankInfo.next.toLocaleString()} てん`}</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-4 shadow-inner overflow-hidden">
+                  <div 
+                    className="h-full rounded-full transition-all duration-1000 ease-out progress-bar-striped"
+                    style={{ width: `${progressPercent}%`, backgroundColor: rankInfo.color }}
+                  ></div>
+                </div>
+              </div>
+            </div>
+          </header>
+
+          <main className="max-w-4xl mx-auto">
+            <div className="relative">
+              <div className="absolute -top-3 -left-3 w-6 h-6 rounded-full bg-red-500 shadow-md border border-red-700 z-20 flex items-center justify-center"><div className="w-2 h-2 rounded-full bg-white opacity-60 absolute top-1 left-1"></div></div>
+              <div className="absolute -top-3 -right-3 w-6 h-6 rounded-full bg-blue-500 shadow-md border border-blue-700 z-20 flex items-center justify-center"><div className="w-2 h-2 rounded-full bg-white opacity-60 absolute top-1 left-1"></div></div>
+
+              <div className="bg-[#e8e4cf] p-6 md:p-8 rounded-lg shadow-inner border border-[#d4d0bc]">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+                  {appData.map(app => (
+                    <AppCard key={app.id} app={app} />
+                  ))}
+                </div>
+              </div>
+            </div>
+          </main>
+          
+          <footer className="mt-12 text-center text-[#3D405B] text-sm font-bold opacity-70">
+            <p>あわてず、自分のペースですすめよう！</p>
+          </footer>
+        </div>
+      );
+    };
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
